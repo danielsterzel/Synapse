@@ -27,3 +27,5 @@ docker-data/
 
 dist/
 build/
+
+notes.md

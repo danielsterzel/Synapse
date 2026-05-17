@@ -6,6 +6,6 @@ COPY package*.json .
 
 RUN npm install
 
-COPY . .
+COPY frontend .
 
 CMD["npm", "run", "dev", "--", "-H", "0.0.0.0"]
