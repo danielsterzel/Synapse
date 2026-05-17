@@ -29,7 +29,7 @@ export function ListItem({children, href}: ReadonlyListItemProps) {
                 }}
                 transition={{duration: 0.3, ease:"easeOut"}}
                 className="absolute bottom-0 
-                left-0 translate-y-12 origin-left h-px w-full bg-zinc-900"
+                left-0  origin-left h-px w-full bg-zinc-900"
             />
         </motion.li>
     )

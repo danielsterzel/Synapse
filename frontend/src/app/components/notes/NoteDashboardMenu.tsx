@@ -1,30 +1,46 @@
 import { useMemo } from "react";
 
 const topics = [
-    "Topics",
-    "Uploaded",
-    "Tests",
-    "Context"
-];
 
-type Props = {
-    selected: number;
+    {
+        key: "topics",
+        label: "Topics"
+    },
+    {
+        key: "uploaded",
+        label: "Uploaded"
+    },
+    {
+        key: "tests",
+        label: "Tests"
+    },
+    {
+        key: "context",
+        label: "Context"
+    }
+
+ ] as const
+
+ type SectionKey = typeof topics[number]["key"];
+
+type NoteDashBoardMenuProps = {
+    selected: SectionKey;
     animationDuration: number;
 }
 
-export function NoteDashboardMenu({ selected, animationDuration }: Props)
+export function NoteDashboardMenu({ selected, animationDuration }: NoteDashBoardMenuProps)
 {
 
     const durationMs = useMemo(() => {return animationDuration * 1000}, [animationDuration]);
 
     return (
         <ul className="flex gap-1 justify-between items-center m-1 px-1 text-xs">
-            {topics.map((topic, index) => (
+            {topics.map((topic) => (
                 <li
-                    key={topic}
+                    key={topic.key}
                     className={`
                      cursor-pointer rounded-md px-2 py-1 transition-colors
-                        ${selected === index
+                        ${selected === topic.key
                             ? `bg-white text-black scale-[1.08] ease-in-out`
                             : ""}
                     `}
@@ -32,7 +48,7 @@ export function NoteDashboardMenu({ selected, animationDuration }: Props)
                       transitionDuration: `${durationMs}ms`
                     }}
                 >
-                    {topic}
+                    {topic.label}
                 </li>
             ))}
         </ul>

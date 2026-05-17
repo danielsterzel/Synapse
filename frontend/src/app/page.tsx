@@ -1,9 +1,12 @@
+
 import Navbar from "@/app/components/layout/Navbar";
-import { Button } from "./components/layout/Button";
 import { NotesDashboardPreview } from "./components/notes/NotesDashboardPreview";
+
+import { ButtonWithArrow } from "./components/ui/Buttons/ButtonWithArrow";
 
 export default function Page()
 {
+
   return(
       <div className="flex flex-col min-h-screen">
           <Navbar />
@@ -12,16 +15,25 @@ export default function Page()
 
         <div className="grid grid-cols-2">
             <div className="flex flex-col gap-12">
+              
               <h1 className="text-6xl font-bold">
                 Your AI powered workspace
               </h1>
+              
               <p className="text-neutral-500 text-xl">
                 An AI-powered workspace for learning, organizing knowledge,
                 and generating contextual study materials.
               </p>
+
               <div className="flex gap-8">
-                <Button>Try out Synapse</Button>
-                <Button variant="secondary">See how it works</Button>
+                
+                <ButtonWithArrow variant="primary">
+                  Try out Synapse
+                </ButtonWithArrow>
+
+                <ButtonWithArrow variant="secondary">
+                  See how it works
+                </ButtonWithArrow>
               </div>
             </div>
             <div className="mr-6">

@@ -1,12 +1,13 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Tile } from "../ui/Tile";
-import { StaggerList } from "../ui/StaggerList";
 import { NoteDashboardMenu } from "./NoteDashboardMenu";
-import { DashboardSection } from "./sections/DashboardSection";
 
 import { AnimatePresence, motion } from "motion/react";
+import { TopicsSection } from "./sections/TopicsSection";
+import { UploadedSection } from "./sections/UploadedSection";
+import { TestsSection } from "./sections/TestsSection";
+import { ContextSection } from "./sections/ContextSection";
 
 const ANIMATION_DURATION = 0.6;
 
@@ -40,23 +41,41 @@ const sectionAnimation = {
     }
 };
 
+const sections = {
+
+    topics: TopicsSection,
+    uploaded: UploadedSection,
+    tests: TestsSection,
+    context: ContextSection
+} as const
+
+type SectionKey = keyof typeof sections
+
+const sectionKeys = Object.keys(sections) as Array<SectionKey>;
 
 
 export function NotesDashboardPreview()
 {   
-    const [selected, setSelected] = useState(0);
-
+    const [selected, setSelected] = useState<SectionKey>("topics");
+    
     useEffect(() => {
 
         const interval = setInterval(() => {
-            setSelected((prev) => (
-                prev === 3 ? 0 : prev + 1
-            ));
+            setSelected((prev) => {
+                
+                const currentIndex = sectionKeys.indexOf(prev);
+                const nextIndex = (currentIndex + 1) % sectionKeys.length;
+
+                return sectionKeys[nextIndex];
+
+            });
         }, 8000);
 
         return () => clearInterval(interval);
 
     }, []);
+
+    const CurentSection = sections[selected];
 
     return (
         <div className="w-full  rounded-lg p-4">
@@ -78,7 +97,7 @@ export function NotesDashboardPreview()
                             className="mt-4"
                         >
 
-                        <DashboardSection selected={selected}/>
+                        <CurentSection />
                         </motion.div>
 
                     </AnimatePresence>

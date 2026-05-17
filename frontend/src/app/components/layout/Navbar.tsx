@@ -1,6 +1,6 @@
 import { ListItem } from "../ui/ListItem";
 import { Logo } from "@/app/components/layout/Logo";
-import { Button } from "./Button";
+import { Button } from "../ui/Buttons/Button";
 
 export default function Navbar() {
     return (
