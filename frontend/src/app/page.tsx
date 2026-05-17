@@ -14,7 +14,7 @@ export default function Page()
         <section className="mt-32 ml-24">
 
         <div className="grid grid-cols-2">
-            <div className="flex flex-col gap-12">
+            <div className="flex select-none flex-col gap-12">
               
               <h1 className="text-6xl font-bold">
                 Your AI powered workspace
