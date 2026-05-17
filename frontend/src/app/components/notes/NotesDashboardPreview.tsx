@@ -5,7 +5,7 @@ import { NoteDashboardMenu } from "./NoteDashboardMenu";
 
 import { AnimatePresence, motion } from "motion/react";
 import { TopicsSection } from "./sections/TopicsSection";
-import { UploadedSection } from "./sections/UploadedSection";
+import { UploadedSection } from "./sections/uploaded_section/UploadedSection";
 import { TestsSection } from "./sections/TestsSection";
 import { ContextSection } from "./sections/ContextSection";
 
