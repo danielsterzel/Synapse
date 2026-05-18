@@ -6,7 +6,7 @@ import { faPen } from "@fortawesome/free-solid-svg-icons";
 import { faStar } from "@fortawesome/free-regular-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
-
+// TODO: improve graphics
 export function ContextSection()
 {
     return(

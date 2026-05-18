@@ -43,9 +43,9 @@ const sectionAnimation = {
 
 const sections = {
 
-    // topics: TopicsSection,
-    // uploaded: UploadedSection,
-    // tests: TestsSection,
+    topics: TopicsSection,
+    uploaded: UploadedSection,
+    tests: TestsSection,
     context: ContextSection
 } as const
 
@@ -56,7 +56,7 @@ const sectionKeys = Object.keys(sections) as Array<SectionKey>;
 
 export function NotesDashboardPreview()
 {   
-    const [selected, setSelected] = useState<SectionKey>("context");
+    const [selected, setSelected] = useState<SectionKey>("topics");
     
     useEffect(() => {
 

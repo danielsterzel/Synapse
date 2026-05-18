@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+
 
 const topics = [
 
@@ -28,10 +28,10 @@ type NoteDashBoardMenuProps = {
     animationDuration: number;
 }
 
-export function NoteDashboardMenu({ selected, animationDuration }: NoteDashBoardMenuProps)
+export function NoteDashboardMenu({ selected, animationDuration }: Readonly<NoteDashBoardMenuProps>)
 {
 
-    const durationMs = useMemo(() => {return animationDuration * 1000}, [animationDuration]);
+    const durationMs =  animationDuration * 1000;
 
     return (
         <ul className="flex gap-1 justify-between items-center m-1 px-1 text-xs">

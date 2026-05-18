@@ -1,7 +1,7 @@
 
 import Navbar from "@/app/components/layout/Navbar";
 import { NotesDashboardPreview } from "./components/notes/NotesDashboardPreview";
-
+import Link from "next/link";
 import { ButtonWithArrow } from "./components/ui/Buttons/ButtonWithArrow";
 
 export default function Page()
@@ -27,16 +27,21 @@ export default function Page()
 
               <div className="flex gap-8">
                 
-                <ButtonWithArrow variant="primary">
+              <Link href="/register">
+                <ButtonWithArrow 
+                variant="primary">
                   Try out Synapse
                 </ButtonWithArrow>
+              </Link>
 
+              <Link href="/">
                 <ButtonWithArrow variant="secondary">
                   See how it works
                 </ButtonWithArrow>
+              </Link>
               </div>
             </div>
-            <div className="mr-6 -translate-y-24">
+            <div className="mr-6 -translate-y-32">
               <NotesDashboardPreview />
             </div>
           </div>

@@ -4,6 +4,7 @@ import { faFile } from "@fortawesome/free-regular-svg-icons";
 import { faPen } from "@fortawesome/free-solid-svg-icons";
 import { Button } from "@/app/components/ui/Buttons/Button";
 
+// TODO: improve graphics
 export function UploadedSection()
 {
     return(
