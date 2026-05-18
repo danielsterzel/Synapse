@@ -6,7 +6,7 @@ import { NoteDashboardMenu } from "./NoteDashboardMenu";
 import { AnimatePresence, motion } from "motion/react";
 import { TopicsSection } from "./sections/TopicsSection";
 import { UploadedSection } from "./sections/uploaded_section/UploadedSection";
-import { TestsSection } from "./sections/TestsSection";
+import { TestsSection } from "./sections/test_section/TestsSection";
 import { ContextSection } from "./sections/ContextSection";
 
 const ANIMATION_DURATION = 0.6;
@@ -43,9 +43,9 @@ const sectionAnimation = {
 
 const sections = {
 
-    topics: TopicsSection,
-    uploaded: UploadedSection,
-    tests: TestsSection,
+    // topics: TopicsSection,
+    // uploaded: UploadedSection,
+    // tests: TestsSection,
     context: ContextSection
 } as const
 
@@ -56,7 +56,7 @@ const sectionKeys = Object.keys(sections) as Array<SectionKey>;
 
 export function NotesDashboardPreview()
 {   
-    const [selected, setSelected] = useState<SectionKey>("topics");
+    const [selected, setSelected] = useState<SectionKey>("context");
     
     useEffect(() => {
 

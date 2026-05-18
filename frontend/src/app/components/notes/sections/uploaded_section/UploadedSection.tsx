@@ -12,6 +12,7 @@ export function UploadedSection()
             <h1 className="text-3xl font-bold tracking-wide text-center text-pretty">
                 Uploaded files
             </h1>
+            <p className="text-neutral-500 text-md">Here are all the files you have uploaded to Synapse</p>
             <div className="grid grid-cols-3">
                 
                 <div className="flex flex-col gap-2 text-center 

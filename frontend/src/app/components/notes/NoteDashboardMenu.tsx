@@ -39,7 +39,7 @@ export function NoteDashboardMenu({ selected, animationDuration }: NoteDashBoard
                 <li
                     key={topic.key}
                     className={`
-                     cursor-pointer rounded-md px-2 py-1 transition-colors
+                      rounded-md px-2 py-1 transition-colors
                         ${selected === topic.key
                             ? `bg-white text-black scale-[1.08] ease-in-out`
                             : ""}

@@ -36,7 +36,7 @@ export default function Page()
                 </ButtonWithArrow>
               </div>
             </div>
-            <div className="mr-6">
+            <div className="mr-6 -translate-y-24">
               <NotesDashboardPreview />
             </div>
           </div>
