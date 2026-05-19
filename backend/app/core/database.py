@@ -3,7 +3,7 @@ from collections.abc import AsyncGenerator
 
 from sqlalchemy.orm import DeclarativeBase
 
-from app.core.settings import settings
+from backend.app.core.settings import settings
 
 engine = create_async_engine(
     settings.database_url,
