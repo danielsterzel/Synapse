@@ -1,10 +1,11 @@
 
+
 import type { ButtonProps } from "./ButtonProps";
 
 export function Button({children, variant = "primary"}: Readonly<ButtonProps>)
 {
     const baseStyles =
-        "shadow-md px-12 py-2 rounded-full transition-all duration-300 cursor-pointer";
+        "w-full shadow-md px-4 py-2 rounded-full transition-all duration-300 cursor-pointer";
 
     const variants = {
         primary:

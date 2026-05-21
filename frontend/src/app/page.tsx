@@ -1,7 +1,7 @@
 
 import Navbar from "@/app/components/layout/Navbar";
 import { NotesDashboardPreview } from "./components/notes/NotesDashboardPreview";
-
+import Link from "next/link";
 import { ButtonWithArrow } from "./components/ui/Buttons/ButtonWithArrow";
 
 export default function Page()
@@ -14,7 +14,7 @@ export default function Page()
         <section className="mt-32 ml-24">
 
         <div className="grid grid-cols-2">
-            <div className="flex flex-col gap-12">
+            <div className="flex select-none flex-col gap-12">
               
               <h1 className="text-6xl font-bold">
                 Your AI powered workspace
@@ -27,16 +27,21 @@ export default function Page()
 
               <div className="flex gap-8">
                 
-                <ButtonWithArrow variant="primary">
+              <Link href="/register">
+                <ButtonWithArrow 
+                variant="primary">
                   Try out Synapse
                 </ButtonWithArrow>
+              </Link>
 
+              <Link href="/">
                 <ButtonWithArrow variant="secondary">
                   See how it works
                 </ButtonWithArrow>
+              </Link>
               </div>
             </div>
-            <div className="mr-6">
+            <div className="mr-6 -translate-y-32">
               <NotesDashboardPreview />
             </div>
           </div>

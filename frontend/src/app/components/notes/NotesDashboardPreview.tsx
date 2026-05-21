@@ -5,8 +5,8 @@ import { NoteDashboardMenu } from "./NoteDashboardMenu";
 
 import { AnimatePresence, motion } from "motion/react";
 import { TopicsSection } from "./sections/TopicsSection";
-import { UploadedSection } from "./sections/UploadedSection";
-import { TestsSection } from "./sections/TestsSection";
+import { UploadedSection } from "./sections/uploaded_section/UploadedSection";
+import { TestsSection } from "./sections/test_section/TestsSection";
 import { ContextSection } from "./sections/ContextSection";
 
 const ANIMATION_DURATION = 0.6;
@@ -78,32 +78,29 @@ export function NotesDashboardPreview()
     const CurentSection = sections[selected];
 
     return (
-        <div className="w-full  rounded-lg p-4">
+        <div className="w-full select-none rounded-lg p-4">
             <div className="flex flex-col gap-2">
                 <div className="flex flex-col items-center">
                     <div className="w-[50%] bg-neutral-200 rounded-lg  text-xs">
                         <NoteDashboardMenu selected={selected} 
                         animationDuration={ANIMATION_DURATION}/>
                     </div>
-
-
-                    <AnimatePresence mode="wait">
-                        <motion.div
-                            key={selected}
-                            variants={sectionAnimation}
-                            initial="initial"
-                            animate="animate"
-                            exit="exit"
-                            className="mt-4"
-                        >
-
-                        <CurentSection />
-                        </motion.div>
-
-                    </AnimatePresence>
-
-
                 </div>
+
+                <AnimatePresence mode="wait">
+                    <motion.div
+                        key={selected}
+                        variants={sectionAnimation}
+                        initial="initial"
+                        animate="animate"
+                        exit="exit"
+                        className="mt-4"
+                    >
+
+                    <CurentSection />
+                    </motion.div>
+
+                </AnimatePresence>
 
             </div>
         </div>

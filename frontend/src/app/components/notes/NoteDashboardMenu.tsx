@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+
 
 const topics = [
 
@@ -28,10 +28,10 @@ type NoteDashBoardMenuProps = {
     animationDuration: number;
 }
 
-export function NoteDashboardMenu({ selected, animationDuration }: NoteDashBoardMenuProps)
+export function NoteDashboardMenu({ selected, animationDuration }: Readonly<NoteDashBoardMenuProps>)
 {
 
-    const durationMs = useMemo(() => {return animationDuration * 1000}, [animationDuration]);
+    const durationMs =  animationDuration * 1000;
 
     return (
         <ul className="flex gap-1 justify-between items-center m-1 px-1 text-xs">
@@ -39,7 +39,7 @@ export function NoteDashboardMenu({ selected, animationDuration }: NoteDashBoard
                 <li
                     key={topic.key}
                     className={`
-                     cursor-pointer rounded-md px-2 py-1 transition-colors
+                      rounded-md px-2 py-1 transition-colors
                         ${selected === topic.key
                             ? `bg-white text-black scale-[1.08] ease-in-out`
                             : ""}
