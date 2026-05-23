@@ -1,6 +1,5 @@
 """TODO:
 - Implement OAuth for Google and maybe GitHub
-- Implement Email verification -[in progress]
 - Implement password change
 - [Optional] implement email change
 - Implement refresh token exchange
@@ -25,7 +24,8 @@ from backend.app.schemas.auth_schemas import (
     AuthResponse,
     RegisterRequest,
     EmailVerificationRequest,
-    EmailVerificationResponse,
+    EmailAlreadyVerified,
+    RegisterResponse,
 )
 
 from backend.app.core.database import get_db
@@ -47,12 +47,12 @@ async def login(
     return create_auth_response(user, message="Login successful")
 
 
-@router.post("/register", response_model=AuthResponse)
+@router.post("/register", response_model=RegisterResponse)
 async def register(
     data: RegisterRequest,
     background_tasks: BackgroundTasks,
     db: Annotated[AsyncSession, Depends(get_db)],
-) -> AuthResponse:
+) -> RegisterResponse:
     """Add user email validation via sending verification code"""
 
     existing = await db.execute(
@@ -79,13 +79,13 @@ async def register(
         email_service.send_verification_email, user.id, user.email
     )
 
-    return create_auth_response(user, message="Registration successful")
+    return RegisterResponse(message="Registration successful. Verify email to proceed")
 
 
-@router.post("/register/verify-email", response_model=EmailVerificationResponse)
+@router.post("/register/verify-email", response_model=AuthResponse | EmailAlreadyVerified)
 async def verify_email(
     data: EmailVerificationRequest, db: Annotated[AsyncSession, Depends(get_db)]
-):
+) -> AuthResponse | EmailAlreadyVerified:
 
     plain_token = data.token
 
@@ -116,7 +116,7 @@ async def verify_email(
 
         log.info(f"User {user.id} already verified email")
 
-        return EmailVerificationResponse(message="Email already verified")
+        return EmailAlreadyVerified(message="Email already verified")
 
     user.is_email_verified = True
 
@@ -124,4 +124,7 @@ async def verify_email(
 
     await email_service.remove_from_redis_storage(plain_token)
 
-    return EmailVerificationResponse(message="Email verification successful")
+    return create_auth_response(
+        user,
+        message="Email verification successful",
+    )

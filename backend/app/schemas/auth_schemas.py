@@ -57,12 +57,14 @@ class RegisterRequest(BaseModel):
 
     password: str = Field(min_length=8, max_length=128)
 
+class RegisterResponse(BaseModel):
+    message: str
 
 class EmailVerificationRequest(BaseModel):
     token: str
 
 
-class EmailVerificationResponse(BaseModel):
+class EmailAlreadyVerified(BaseModel):
     message: str
 
 
