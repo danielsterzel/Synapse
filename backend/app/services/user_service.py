@@ -1,7 +1,7 @@
 from pydantic import EmailStr
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from backend.app.core.security.security import PasswordHasher
+from backend.app.core.security.password_hasher import PasswordHasher
 from backend.app.models.user import User
 
 from datetime import datetime, timezone

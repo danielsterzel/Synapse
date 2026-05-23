@@ -15,7 +15,8 @@ class Settings(BaseSettings):
     jwt_public_key: str
     access_token_expire_minutes: int
     refresh_token_expire_days: int
-
+    resend_api_key: str
+    redis_server_url: str
     debug: bool = False
 
     model_config = SettingsConfigDict(

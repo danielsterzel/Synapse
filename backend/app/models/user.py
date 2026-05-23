@@ -41,6 +41,7 @@ class User(Base):
     hashed_password: Mapped[str] = mapped_column(String(1024), nullable=False)
 
     email: Mapped[str] = mapped_column(String(255), nullable=False)
+    is_email_verified: Mapped[bool] = mapped_column(Boolean, default=False)
 
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=lambda: datetime.now(timezone.utc)

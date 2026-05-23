@@ -10,5 +10,5 @@ class PasswordHasher:
         return pwd_context.hash(password)
 
     @staticmethod
-    def verify_(plain: str, hashed: str) -> bool:
+    def verify_password(plain: str, hashed: str) -> bool:
         return pwd_context.verify(plain, hashed)

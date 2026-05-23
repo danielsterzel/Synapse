@@ -1,6 +1,6 @@
 """TODO:
 - Implement OAuth for Google and maybe GitHub
-- Implement Email verification
+- Implement Email verification -[in progress]
 - Implement password change
 - [Optional] implement email change
 - Implement refresh token exchange
@@ -12,18 +12,17 @@ from fastapi import APIRouter, Depends, HTTPException, status
 
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, or_
+
+from backend.app.services.auth_service import validate_user_credentials, create_auth_response
+from backend.app.models.user import User
 from backend.app.schemas.auth_schemas import (
     LoginRequest,
     AuthResponse,
     RegisterRequest,
 )
-from backend.app.core.security.authenticate.authenticate import (
-    authenticate_user,
-    create_auth_response,
-)
-from backend.app.models.user import User
+
 from backend.app.core.database import get_db
-import backend.app.core.service.user_service as user_service
+import backend.app.services.user_service as user_service
 
 router = APIRouter(prefix="auth", tags=["auth"])
 
@@ -33,9 +32,9 @@ async def login(
     data: LoginRequest, db: Annotated[AsyncSession, Depends(get_db)]
 ) -> AuthResponse:
 
-    user: User = await authenticate_user(data.login, data.password, db)
+    user: User = await validate_user_credentials(data.login, data.password, db)
 
-    return create_auth_response(user, msg="Login successful")
+    return create_auth_response(user, message="Login successful")
 
 
 @router.post("/register", response_model=AuthResponse)
@@ -62,4 +61,4 @@ async def register(
         db, data.username, data.email, data.password
     )
 
-    return create_auth_response(user, msg="Registration successful")
+    return create_auth_response(user, message="Registration successful")
