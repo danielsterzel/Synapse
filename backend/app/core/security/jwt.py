@@ -1,4 +1,3 @@
-
 import jwt
 
 from enum import Enum
@@ -31,6 +30,7 @@ class TokenPayload(BaseModel):
     sub: str
     type: TokenType
     exp: datetime
+
 
 """
    END ---data structs---

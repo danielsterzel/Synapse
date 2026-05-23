@@ -8,7 +8,10 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from backend.app.core.database import get_db
-from backend.app.core.exceptions.exceptions import InvalidCredentialsException, UserNotFoundException
+from backend.app.core.exceptions.exceptions import (
+    InvalidCredentialsException,
+    UserNotFoundException,
+)
 from backend.app.core.security.jwt import JWTService
 from backend.app.models.user import User
 

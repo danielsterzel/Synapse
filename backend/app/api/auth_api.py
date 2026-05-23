@@ -13,7 +13,10 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, or_
 
-from backend.app.services.auth_service import validate_user_credentials, create_auth_response
+from backend.app.services.auth_service import (
+    validate_user_credentials,
+    create_auth_response,
+)
 from backend.app.models.user import User
 from backend.app.schemas.auth_schemas import (
     LoginRequest,
