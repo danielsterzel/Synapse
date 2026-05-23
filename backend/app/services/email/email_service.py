@@ -1,3 +1,4 @@
+import uuid
 from typing import Annotated
 
 import resend
@@ -37,7 +38,7 @@ class EmailService:
 
     redis_client = Redis.from_url(settings.redis_server_url)
 
-    env = Environment(loader=FileSystemLoader("templates"))
+    env = Environment(loader=FileSystemLoader("../../../templates"))
 
     def __init__(
         self,
@@ -45,34 +46,53 @@ class EmailService:
     ):
         self.expiration = expiration
 
+    @staticmethod
+    def email_token_hasher(token: str):
+        return hashlib.sha256(token.encode()).hexdigest()
+
     async def _insert_into_redis_storage(
-        self, user_id: int, hashed_verification_token: str
+        self, user_id: uuid.UUID, hashed_verification_token: str
     ) -> None:
 
-        token_key = f"user:{user_id}:email_verification"
+        token_key = f"email_verification:{hashed_verification_token}"
 
         stored = await self.redis_client.set(
-            token_key, hashed_verification_token, ex=self.expiration
+            token_key,
+            str(user_id),
+            ex=self.expiration,
         )
-
         if not stored:
             raise RedisError(
                 "Failed to SET email verification token inside Redis cluster"
             )
         logger.info(f"Stored verification token for user: {user_id}")
 
-    async def _remove_from_redis_storage(self, user_id: int) -> None:
+    async def get_from_redis_storage(self, raw_token: str) -> uuid.UUID | None:
 
-        key = f"user:{user_id}:email_verification"
+        hashed = self.email_token_hasher(raw_token)
+
+        key = f"email_verification:" f"{hashed}"
+
+        user_id = await self.redis_client.get(key)
+
+        if user_id is None:
+            return None
+
+        return uuid.UUID(user_id.decode())
+
+    async def remove_from_redis_storage(self, raw_token: str) -> None:
+
+        hashed = self.email_token_hasher(raw_token)
+
+        key = f"email_verification:" f"{hashed}"
 
         deleted = await self.redis_client.delete(key)
 
         if deleted != 1:
-            raise ValueError(f"Verification token for user {user_id} does not exist")
+            raise ValueError("Verification token does not exist")
+        logger.info(f"Removed verification token: {hashed}")
 
-        logger.info(f"Removed verification token for: {user_id}")
-
-    async def can_send_verification_email(self, user_id: int) -> bool:
+    async def can_send_verification_email(self, user_id: uuid.UUID) -> bool:
         """used in api endpoint"""
 
         cooldown_key = f"user:{user_id}:email_verification:cooldown"
@@ -83,7 +103,9 @@ class EmailService:
 
         return bool(allowed)
 
-    async def send_verification_email(self, user_id: int, user_email: str) -> None:
+    async def send_verification_email(
+        self, user_id: uuid.UUID, user_email: str
+    ) -> None:
 
         if not await self.can_send_verification_email(user_id):
             raise HTTPException(
@@ -92,7 +114,7 @@ class EmailService:
             )
 
         token = secrets.token_urlsafe(32)
-        hashed = hashlib.sha256(token.encode()).hexdigest()
+        hashed = self.email_token_hasher(token)
 
         try:
 
@@ -114,7 +136,7 @@ class EmailService:
                 }
             )
         except Exception:
-            await self._remove_from_redis_storage(user_id)
+            await self.remove_from_redis_storage(token)
 
             logger.exception(f"Failed to send verification email for user {user_id}")
 

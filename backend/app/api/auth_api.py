@@ -7,8 +7,10 @@
 
 """
 
+import logging
+
 from typing import Annotated
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, BackgroundTasks, HTTPException, status
 
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, or_
@@ -22,12 +24,17 @@ from backend.app.schemas.auth_schemas import (
     LoginRequest,
     AuthResponse,
     RegisterRequest,
+    EmailVerificationRequest,
+    EmailVerificationResponse,
 )
 
 from backend.app.core.database import get_db
 import backend.app.services.user_service as user_service
+from backend.app.services.email.email_service import EmailService
 
-router = APIRouter(prefix="auth", tags=["auth"])
+log = logging.getLogger(__name__)
+
+router = APIRouter(prefix="/auth", tags=["auth"])
 
 
 @router.post("/login", response_model=AuthResponse)
@@ -42,7 +49,9 @@ async def login(
 
 @router.post("/register", response_model=AuthResponse)
 async def register(
-    data: RegisterRequest, db: Annotated[AsyncSession, Depends(get_db)]
+    data: RegisterRequest,
+    background_tasks: BackgroundTasks,
+    db: Annotated[AsyncSession, Depends(get_db)],
 ) -> AuthResponse:
     """Add user email validation via sending verification code"""
 
@@ -64,4 +73,55 @@ async def register(
         db, data.username, data.email, data.password
     )
 
+    email_service = EmailService()
+
+    background_tasks.add_task(
+        email_service.send_verification_email, user.id, user.email
+    )
+
     return create_auth_response(user, message="Registration successful")
+
+
+@router.post("/register/verify-email", response_model=EmailVerificationResponse)
+async def verify_email(
+    data: EmailVerificationRequest, db: Annotated[AsyncSession, Depends(get_db)]
+):
+
+    plain_token = data.token
+
+    email_service = EmailService()
+    user_id = await email_service.get_from_redis_storage(plain_token)
+
+    if user_id is None:
+
+        log.warning("Dangling token without assigned user")
+
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Token is invalid"
+        )
+    user: User | None = await user_service.get_user_by_uuid(user_id, db)
+
+    if not user:
+
+        log.warning(
+            "Could not find user via verification email token. Db returned None"
+        )
+
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Could not verify email no user with user ID: {user_id} exists.",
+        )
+
+    if user.is_email_verified:
+
+        log.info(f"User {user.id} already verified email")
+
+        return EmailVerificationResponse(message="Email already verified")
+
+    user.is_email_verified = True
+
+    await db.commit()
+
+    await email_service.remove_from_redis_storage(plain_token)
+
+    return EmailVerificationResponse(message="Email verification successful")
