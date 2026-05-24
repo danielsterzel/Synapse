@@ -32,7 +32,7 @@ class RedisStorageManager:
 
     async def get_from_redis_storage(self, key: str) -> str | None:
 
-        key = f"{self.prefix}: {key}"
+        key = f"{self.prefix}:{key}"
 
         value = await self.redis_client.get(key)
 
@@ -43,10 +43,21 @@ class RedisStorageManager:
 
     async def remove_from_redis_storage(self, key: str) -> None:
 
-        key = f"{self.prefix}: {key}"
+        key = f"{self.prefix}:{key}"
 
         deleted = await self.redis_client.delete(key)
 
         if deleted != 1:
             raise ValueError(f"Deletion of key: {key} failed --- {self.prefix}")
         log.info(f"Removed: {key} --- prefix: {self.prefix}")
+
+    async def acquire_lock(self, key: str, expiration: int) -> bool:
+
+        key_pattern = f"{self.prefix}:{key}"
+        acquired = await self.redis_client.set(
+            key_pattern,
+            "blocker",
+            ex=expiration,
+            nx=True
+        )
+        return bool(acquired)
