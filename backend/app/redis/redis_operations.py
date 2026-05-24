@@ -55,9 +55,6 @@ class RedisStorageManager:
 
         key_pattern = f"{self.prefix}:{key}"
         acquired = await self.redis_client.set(
-            key_pattern,
-            "blocker",
-            ex=expiration,
-            nx=True
+            key_pattern, "blocker", ex=expiration, nx=True
         )
         return bool(acquired)

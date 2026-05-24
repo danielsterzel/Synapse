@@ -1,32 +1,22 @@
 import uuid
 from typing import Annotated
 
-import resend
+import hashlib
+import logging
+import secrets
 
-from redis.asyncio import Redis
-from redis.exceptions import RedisError
+import resend
 
 from fastapi import HTTPException, status
 
 from jinja2 import Environment, FileSystemLoader
 
 from backend.app.core.settings import settings
-
-import hashlib
-import secrets
-
-import logging
-
-"""
-Currently config is hardcoded -> migrate to json or yaml file that holds information such as:
- - Verify email frontend page url
- - redis ttl
- - Synapse email service? or using resend email service?
- 
-    etc.
-"""
+from backend.app.redis.redis_operations import RedisStorageManager
 
 logger = logging.getLogger(__name__)
+
+""" Refactor so there is no code duplication """
 
 
 class EmailService:
@@ -34,77 +24,47 @@ class EmailService:
     DEFAULT_EXPIRATION: int = 1800
     RESEND_COOLDOWN: int = 60
 
-    resend.api_key = settings.resend_api_key
+    verification_storage = RedisStorageManager("email_verification")
 
-    redis_client = Redis.from_url(settings.redis_server_url)
+    password_reset_storage = RedisStorageManager("password_reset")
+
+    cooldown_storage = RedisStorageManager("user")
+
+    resend.api_key = settings.resend_api_key
 
     env = Environment(loader=FileSystemLoader("../../../templates"))
 
     def __init__(
         self,
-        expiration: Annotated[int, "Expiration is set in seconds"] = DEFAULT_EXPIRATION,
+        expiration: Annotated[
+            int,
+            "Expiration is set in seconds",
+        ] = DEFAULT_EXPIRATION,
     ):
         self.expiration = expiration
 
     @staticmethod
-    def email_token_hasher(token: str):
+    def email_token_hasher(token: str) -> str:
         return hashlib.sha256(token.encode()).hexdigest()
 
-    async def _insert_into_redis_storage(
-        self, user_id: uuid.UUID, hashed_verification_token: str
-    ) -> None:
+    async def can_send_verification_email(
+        self,
+        user_id: uuid.UUID,
+    ) -> bool:
 
-        token_key = f"email_verification:{hashed_verification_token}"
+        cooldown_key = f"{user_id}:email_verification:cooldown"
 
-        stored = await self.redis_client.set(
-            token_key,
-            str(user_id),
-            ex=self.expiration,
-        )
-        if not stored:
-            raise RedisError(
-                "Failed to SET email verification token inside Redis cluster"
-            )
-        logger.info(f"Stored verification token for user: {user_id}")
-
-    async def get_from_redis_storage(self, raw_token: str) -> uuid.UUID | None:
-
-        hashed = self.email_token_hasher(raw_token)
-
-        key = f"email_verification:" f"{hashed}"
-
-        user_id = await self.redis_client.get(key)
-
-        if user_id is None:
-            return None
-
-        return uuid.UUID(user_id.decode())
-
-    async def remove_from_redis_storage(self, raw_token: str) -> None:
-
-        hashed = self.email_token_hasher(raw_token)
-
-        key = f"email_verification:" f"{hashed}"
-
-        deleted = await self.redis_client.delete(key)
-
-        if deleted != 1:
-            raise ValueError("Verification token does not exist")
-        logger.info(f"Removed verification token: {hashed}")
-
-    async def can_send_verification_email(self, user_id: uuid.UUID) -> bool:
-        """used in api endpoint"""
-
-        cooldown_key = f"user:{user_id}:email_verification:cooldown"
-
-        allowed = await self.redis_client.set(
-            cooldown_key, "1", ex=self.RESEND_COOLDOWN, nx=True
+        allowed = await self.cooldown_storage.acquire_lock(
+            cooldown_key,
+            self.RESEND_COOLDOWN,
         )
 
         return bool(allowed)
 
     async def send_verification_email(
-        self, user_id: uuid.UUID, user_email: str
+        self,
+        user_id: uuid.UUID,
+        user_email: str,
     ) -> None:
 
         if not await self.can_send_verification_email(user_id):
@@ -114,36 +74,103 @@ class EmailService:
             )
 
         token = secrets.token_urlsafe(32)
+
         hashed = self.email_token_hasher(token)
 
         try:
 
-            await self._insert_into_redis_storage(user_id, hashed)
+            await self.verification_storage.insert_into_redis_storage(
+                key=hashed,
+                value=str(user_id),
+                expiration=self.expiration,
+            )
 
             verification_url = (
-                f"{settings.frontend_url}/register-verify-email?token={token}"
+                f"{settings.frontend_url}" f"/register-verify-email?token={token}"
             )
 
             template = self.env.get_template("verification_email.html")
+
             html = template.render(verification_url=verification_url)
 
             await resend.Emails.send_async(
                 {
                     "from": "onboarding@resend.dev",
                     "to": user_email,
-                    "subject": "Token verification",
+                    "subject": "Verify your email",
                     "html": html,
                 }
             )
+
         except Exception:
-            await self.remove_from_redis_storage(token)
+
+            await self.verification_storage.remove_from_redis_storage(hashed)
 
             logger.exception(f"Failed to send verification email for user {user_id}")
 
             raise HTTPException(
-                status_code=500, detail="Could not send verification email"
+                status_code=500,
+                detail="Could not send verification email",
             )
 
-        logger.info(
-            f"Sent verification email to user:{user_id} with email: {user_email}"
+        logger.info(f"Sent verification email to user:{user_id}")
+
+    async def can_send_password_reset_email(
+        self,
+        user_id: uuid.UUID,
+    ) -> bool:
+
+        cooldown_key = f"{user_id}:password_reset:cooldown"
+
+        allowed = await self.cooldown_storage.acquire_lock(
+            cooldown_key,
+            self.RESEND_COOLDOWN,
         )
+
+        return bool(allowed)
+
+    async def send_password_reset_email(
+        self,
+        user_id: uuid.UUID,
+        user_email: str,
+    ) -> None:
+
+        token = secrets.token_urlsafe(32)
+
+        hashed = self.email_token_hasher(token)
+
+        try:
+
+            await self.password_reset_storage.insert_into_redis_storage(
+                key=hashed,
+                value=str(user_id),
+                expiration=self.expiration,
+            )
+
+            reset_url = f"{settings.frontend_url}" f"/reset-password?token={token}"
+
+            template = self.env.get_template("password_reset_email.html")
+
+            html = template.render(reset_url=reset_url)
+
+            await resend.Emails.send_async(
+                {
+                    "from": "onboarding@resend.dev",
+                    "to": user_email,
+                    "subject": "Reset your password",
+                    "html": html,
+                }
+            )
+
+        except Exception:
+
+            await self.password_reset_storage.remove_from_redis_storage(hashed)
+
+            logger.exception(f"Failed to send password reset email for user {user_id}")
+
+            raise HTTPException(
+                status_code=500,
+                detail="Could not send password reset email",
+            )
+
+        logger.info(f"Sent password reset email to user:{user_id}")

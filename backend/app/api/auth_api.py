@@ -26,6 +26,7 @@ from backend.app.schemas.auth_schemas import (
     EmailVerificationRequest,
     EmailAlreadyVerified,
     RegisterResponse,
+    ForgotPasswordRequest,
 )
 
 from backend.app.core.database import get_db
@@ -82,7 +83,9 @@ async def register(
     return RegisterResponse(message="Registration successful. Verify email to proceed")
 
 
-@router.post("/register/verify-email", response_model=AuthResponse | EmailAlreadyVerified)
+@router.post(
+    "/register/verify-email", response_model=AuthResponse | EmailAlreadyVerified
+)
 async def verify_email(
     data: EmailVerificationRequest, db: Annotated[AsyncSession, Depends(get_db)]
 ) -> AuthResponse | EmailAlreadyVerified:
@@ -128,3 +131,8 @@ async def verify_email(
         user,
         message="Email verification successful",
     )
+
+
+@router.post("/forgot-password")
+async def reset_password(data: ForgotPasswordRequest):
+    pass

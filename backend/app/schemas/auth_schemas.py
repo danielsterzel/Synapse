@@ -16,6 +16,28 @@ import re
 Username = Annotated[
     str, StringConstraints(min_length=3, max_length=32, pattern=r"^[a-zA-Z0-9_]+$")
 ]
+Password = Annotated[str, StringConstraints(min_length=8, max_length=128)]
+
+
+class PasswordValidator:
+    """Provides password validation for classes that inherit from this class"""
+
+    @field_validator("password")
+    @classmethod
+    def validate_password(cls, password: str) -> str:
+        if not re.search(r"[A-Z]", password):
+            raise ValueError("Password must contain uppercase letter")
+
+        if not re.search(r"[a-z]", password):
+            raise ValueError("Password must contain lowercase letter")
+
+        if not re.search(r"\d", password):
+            raise ValueError("Password must contain at least one number")
+
+        if not re.search(r"[!@#$%^&*()-_=+\[\]{}|/,.<>?'\";:]", password):
+            raise ValueError("Password must contain one special character")
+
+        return password
 
 
 class LoginRequest(BaseModel):
@@ -38,27 +60,16 @@ class AuthResponse(BaseModel):
     tokens: AuthTokenContainer
 
 
-class RegisterRequest(BaseModel):
+class RegisterRequest(PasswordValidator, BaseModel):
     email: EmailStr = Field(max_length=255)
     username: Username
 
-    @field_validator("password")
-    @classmethod
-    def validate_password(cls, password: str) -> str:
-        if not re.search(r"[A-Z]", password):
-            raise ValueError("Password must contain uppercase letter")
-        if not re.search(r"[a-z]", password):
-            raise ValueError("Password must contain lowercase letter")
-        if not re.search(r"\d", password):
-            raise ValueError("Password must contain at least one number")
-        if not re.search(r"[!@#$%^&*()-_=+\[\]{}|/,.<>?'\";:]", password):
-            raise ValueError("Password must contain one special character")
-        return password
+    password: Password
 
-    password: str = Field(min_length=8, max_length=128)
 
 class RegisterResponse(BaseModel):
     message: str
+
 
 class EmailVerificationRequest(BaseModel):
     token: str
@@ -81,3 +92,11 @@ class UserSchema(BaseModel):
 class OAuthUserSchema(BaseModel):
     model_config = ConfigDict(from_attributes=True)
     provider: str = Field(max_length=50)
+
+
+class ForgotPasswordRequest(BaseModel):
+    email: EmailStr
+
+
+class ResetPasswordRequest(PasswordValidator, BaseModel):
+    pass
